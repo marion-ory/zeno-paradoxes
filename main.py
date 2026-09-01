@@ -46,7 +46,7 @@ class SoundSynth:
             n_samples = int(round(duration * sample_rate))
             buf = np.zeros((n_samples, 2), dtype=np.int16)
             max_amp = 19000
-            
+
             for i in range(n_samples):
                 t = i / sample_rate
                 if wave_type == "sine":
@@ -117,20 +117,20 @@ class ZenoApp:
         self._reposition_layout()
 
     def _init_ui(self):
-        # 1. Barre de modes en haut (placés tout à droite)
-        self.btn_mode_zenon = Button(0, 0, 205, 36, "🏛️ Paradoxe de Zénon", 
+        # Des libellés courts rendent la hiérarchie des modes immédiatement lisible.
+        self.btn_mode_zenon = Button(0, 0, 170, 36, "Paradoxe",
                                      callback=lambda: self.set_mode("ZENON"), color=COLORS["gold"])
-        self.btn_mode_real = Button(0, 0, 220, 36, "📐 Résolution Math.", 
+        self.btn_mode_real = Button(0, 0, 185, 36, "Résolution",
                                     callback=lambda: self.set_mode("REAL"), color=COLORS["cyan"], active=True)
-        self.btn_mode_split = Button(0, 0, 155, 36, "⚖️ Double Vue", 
+        self.btn_mode_split = Button(0, 0, 145, 36, "Comparer",
                                      callback=lambda: self.set_mode("SPLIT"), color=COLORS["purple"])
 
         # 2. Contrôles en bas à gauche
-        self.slider_distance = Slider(24, 0, 246, 24, min_val=2.0, max_val=100.0, 
+        self.slider_distance = Slider(24, 0, 246, 24, min_val=2.0, max_val=100.0,
                                       initial_val=self.distance, label="Distance Totale", unit="m", step=1.0,
                                       on_change=self._on_distance_changed)
-        
-        self.slider_speed = Slider(24, 0, 246, 24, min_val=0.5, max_val=10.0, 
+
+        self.slider_speed = Slider(24, 0, 246, 24, min_val=0.5, max_val=10.0,
                                    initial_val=self.speed, label="Vitesse du Javelot", unit="m/s", step=0.5,
                                    on_change=self._on_speed_changed)
 
@@ -141,12 +141,12 @@ class ZenoApp:
         self.btn_p100 = Button(0, 0, 62, 24, "100 m", callback=lambda: self.set_preset_distance(100.0), color=COLORS["panel_card"])
 
         # Boutons d'action principaux
-        self.btn_play = Button(0, 0, 120, 34, "▶ Lancer", callback=self.toggle_play, color=COLORS["emerald"])
-        self.btn_step = Button(0, 0, 120, 34, "⏭ Pas Suivant", callback=self.next_step, color=COLORS["gold"])
-        
+        self.btn_play = Button(0, 0, 120, 34, "Lancer", callback=self.toggle_play, color=COLORS["emerald"])
+        self.btn_step = Button(0, 0, 120, 34, "Étape suivante", callback=self.next_step, color=COLORS["gold"])
+
         # Bouton Infini (∞) spécial & bouton reset
-        self.btn_infinity = Button(0, 0, 246, 32, "♾️ Saut Limite Infini (n → ∞)", callback=self.trigger_infinity, color=COLORS["infinity_color"])
-        self.btn_reset = Button(0, 0, 246, 28, "🔄 Réinitialiser", callback=self.reset_sim, color=COLORS["panel_card"])
+        self.btn_infinity = Button(0, 0, 246, 32, "Voir la limite n → ∞", callback=self.trigger_infinity, color=COLORS["infinity_color"])
+        self.btn_reset = Button(0, 0, 246, 28, "Réinitialiser", callback=self.reset_sim, color=COLORS["panel_card"])
 
         # 3. Tableau de données au milieu
         self.data_table = DataTable(0, 0, 540, 230)
@@ -156,9 +156,9 @@ class ZenoApp:
         self.mini_graph = MiniGraph(0, 0, 460, 195)
         self.zoom_loupe = ZoomLoupe(0, 0, 460, 195)
 
-        self.btn_tab_graph = Button(0, 0, 225, 28, "📈 Graphique Limite", 
+        self.btn_tab_graph = Button(0, 0, 225, 28, "Graphique",
                                     callback=lambda: self.set_right_tab("GRAPH"), color=COLORS["cyan"], active=True)
-        self.btn_tab_loupe = Button(0, 0, 225, 28, "🔬 Loupe Zoom x50", 
+        self.btn_tab_loupe = Button(0, 0, 225, 28, "Loupe ×50",
                                     callback=lambda: self.set_right_tab("LOUPE"), color=COLORS["gold"])
 
     def _reposition_layout(self):
@@ -166,9 +166,9 @@ class ZenoApp:
         # 1. Header (Mode Buttons alignés tout à droite)
         right_margin = 24
         btn_y = 16
-        w_split = 155
-        w_real = 215
-        w_zenon = 200
+        w_split = 145
+        w_real = 185
+        w_zenon = 170
         spacing = 10
 
         x_split = self.width - right_margin - w_split
@@ -215,7 +215,7 @@ class ZenoApp:
         tab_w = (right_w - 10) // 2
         self.btn_tab_graph.set_position(right_x, panel_y, tab_w, 28)
         self.btn_tab_loupe.set_position(right_x + tab_w + 10, panel_y, tab_w, 28)
-        
+
         self.mini_graph.set_position(right_x, panel_y + 35, right_w, 225)
         self.zoom_loupe.set_position(right_x, panel_y + 35, right_w, 225)
 
@@ -231,7 +231,7 @@ class ZenoApp:
         self.btn_mode_real.active = (new_mode == "REAL")
         self.btn_mode_split.active = (new_mode == "SPLIT")
         self.sound.play_click()
-        self.reset_sim()
+        self.reset_sim(play_sound=False)
 
     def set_preset_distance(self, dist: float):
         self.distance = dist
@@ -251,8 +251,16 @@ class ZenoApp:
         self.data_table.set_data(self.model.steps, self.step_idx, self.infinity_active)
 
     def toggle_play(self):
+        # « Recommencer » doit repartir du début, pas redémarrer à t = T.
+        is_finished = (
+            self.infinity_active
+            or self.sim_time >= self.model.total_time - 1e-6
+            or (self.mode == "ZENON" and self.step_idx >= len(self.model.steps) - 1)
+        )
+        if is_finished and not self.is_playing:
+            self.reset_sim(play_sound=False)
         self.is_playing = not self.is_playing
-        self.btn_play.text = "⏸ Pause" if self.is_playing else "▶ Reprendre"
+        self.btn_play.text = "Pause" if self.is_playing else "Reprendre"
         self.btn_play.base_color = COLORS["gold"] if self.is_playing else COLORS["emerald"]
         self.sound.play_click()
 
@@ -263,13 +271,15 @@ class ZenoApp:
             self.sim_time = step.cumul_time
             self.data_table.active_step_idx = self.step_idx
             self.sound.play_step()
-            
+
             if self.step_idx >= 12 and not self.impact_triggered:
                 self.impact_triggered = True
                 self.sound.play_impact()
                 target_x = self.width - 100
                 target_y = 230
                 self.particles.emit_impact(target_x, target_y, count=45)
+
+        self._update_control_states()
 
     def trigger_infinity(self):
         """Active le saut limite à l'infini (n → ∞)."""
@@ -279,42 +289,51 @@ class ZenoApp:
         self.step_idx = 20
         self.data_table.set_data(self.model.steps, self.step_idx, show_infinity=True)
         self.sound.play_infinity()
-        
+
         # Émission d'un burst cosmique de particules
         target_x = self.width - 100
         target_y = 230 if self.mode != "SPLIT" else 350
         self.particles.emit_impact(target_x, target_y, count=80, theme="infinity")
+        self._update_control_states()
 
-    def reset_sim(self):
+    def reset_sim(self, play_sound: bool = True):
         self.is_playing = False
         self.sim_time = 0.0
         self.step_idx = 0
         self.impact_triggered = False
         self.infinity_active = False
-        self.btn_play.text = "▶ Lancer"
+        self.btn_play.text = "Lancer"
         self.btn_play.base_color = COLORS["emerald"]
         self.data_table.set_data(self.model.steps, active_step=-1, show_infinity=False)
         self.particles.particles.clear()
-        self.sound.play_click()
+        self._update_control_states()
+        if play_sound:
+            self.sound.play_click()
+
+    def _update_control_states(self):
+        """Affiche les actions indisponibles au lieu de laisser l'utilisateur deviner."""
+        self.btn_step.disabled = self.infinity_active or self.step_idx >= len(self.model.steps) - 1
+        self.btn_infinity.disabled = self.infinity_active
 
     def update(self, dt: float):
-        for btn in [self.btn_mode_zenon, self.btn_mode_real, self.btn_mode_split, 
-                    self.btn_p8, self.btn_p16, self.btn_p50, self.btn_p100, 
+        for btn in [self.btn_mode_zenon, self.btn_mode_real, self.btn_mode_split,
+                    self.btn_p8, self.btn_p16, self.btn_p50, self.btn_p100,
                     self.btn_play, self.btn_step, self.btn_infinity, self.btn_reset,
                     self.btn_tab_graph, self.btn_tab_loupe]:
             btn.update(dt)
 
         self.particles.update(dt)
+        self._update_control_states()
 
         if self.is_playing:
             eff_dt = dt * self.sim_speed_mult
-            
+
             if self.mode == "REAL":
                 self.sim_time += eff_dt
                 if self.sim_time >= self.model.total_time:
                     self.sim_time = self.model.total_time
                     self.is_playing = False
-                    self.btn_play.text = "▶ Recommencer"
+                    self.btn_play.text = "Recommencer"
                     self.btn_play.base_color = COLORS["emerald"]
                     if not self.impact_triggered:
                         self.impact_triggered = True
@@ -322,26 +341,26 @@ class ZenoApp:
                         target_x = self.width - 100
                         target_y = 230
                         self.particles.emit_impact(target_x, target_y, count=60)
-            
+
             elif self.mode == "ZENON":
                 step_duration = 0.75
                 self.sim_time += eff_dt
                 target_step_time = (self.step_idx + 1) * step_duration
-                
+
                 if self.sim_time >= target_step_time:
                     if self.step_idx < len(self.model.steps) - 1:
                         self.step_idx += 1
                         self.sound.play_step()
                     else:
                         self.is_playing = False
-                        self.btn_play.text = "▶ Recommencer"
-            
+                        self.btn_play.text = "Recommencer"
+
             elif self.mode == "SPLIT":
                 self.sim_time += eff_dt
                 if self.sim_time >= self.model.total_time:
                     self.sim_time = self.model.total_time
                     self.is_playing = False
-                    self.btn_play.text = "▶ Recommencer"
+                    self.btn_play.text = "Recommencer"
                     if not self.impact_triggered:
                         self.impact_triggered = True
                         self.sound.play_impact()
@@ -379,20 +398,20 @@ class ZenoApp:
             self.btn_mode_zenon.handle_event(event)
             self.btn_mode_real.handle_event(event)
             self.btn_mode_split.handle_event(event)
-            
+
             self.slider_distance.handle_event(event)
             self.slider_speed.handle_event(event)
-            
+
             self.btn_p8.handle_event(event)
             self.btn_p16.handle_event(event)
             self.btn_p50.handle_event(event)
             self.btn_p100.handle_event(event)
-            
+
             self.btn_play.handle_event(event)
             self.btn_step.handle_event(event)
             self.btn_infinity.handle_event(event)
             self.btn_reset.handle_event(event)
-            
+
             self.data_table.handle_event(event)
             self.btn_tab_graph.handle_event(event)
             self.btn_tab_loupe.handle_event(event)
@@ -422,7 +441,7 @@ class ZenoApp:
         title_surf = self.font_title.render("LES PARADOXES DE ZÉNON", True, COLORS["text_main"])
         self.screen.blit(title_surf, (24, 14))
 
-        sub_text = "Dichotomie : Le javelot atteindra-t-il sa cible ? (Séries convergentes & Limites)"
+        sub_text = "Explorez comment une infinité d'étapes peut tenir dans un temps fini."
         sub_surf = self.font_subtitle.render(sub_text, True, COLORS["text_muted"])
         self.screen.blit(sub_surf, (24, 42))
 
@@ -462,9 +481,9 @@ class ZenoApp:
         for i, step in enumerate(self.model.steps[:6]):
             frac_ratio = step.cumul_distance / self.model.total_distance
             jx = track_start_x + int(frac_ratio * track_w)
-            
+
             pygame.draw.line(self.screen, COLORS["panel_border_bright"], (jx, track_y - 20), (jx, track_y + 20), 2)
-            
+
             frac_lbl = self.font_ui_bold.render(step.fraction_str if i == 0 else f"+{step.fraction_str}", True, COLORS["gold"])
             self.screen.blit(frac_lbl, (jx - 14, track_y - 38))
 
@@ -489,7 +508,7 @@ class ZenoApp:
             cur_ratio = min(1.0, cur_d / self.model.total_distance)
             jx = track_start_x + int(cur_ratio * track_w)
             self._draw_javelin(jx, track_y)
-            self._draw_live_stats_overlay(track_start_x, track_y + 70, st["current_distance"], st["current_time"], 
+            self._draw_live_stats_overlay(track_start_x, track_y + 70, st["current_distance"], st["current_time"],
                                          st["remaining_distance"], st["progress"])
         elif self.mode == "ZENON":
             step = self.model.get_step(self.step_idx)
@@ -540,23 +559,23 @@ class ZenoApp:
         if self.infinity_active:
             pygame.draw.rect(self.screen, (50, 18, 70), banner_rect, border_radius=8)
             pygame.draw.rect(self.screen, COLORS["infinity_color"], banner_rect, width=1, border_radius=8)
-            t1 = self.font_ui_bold.render("♾️ DÉMONSTRATION DE LA LIMITE À L'INFINI (n → ∞)", True, COLORS["infinity_color"])
-            t2 = self.font_ui.render(f"lim(n→∞) Σ(1/2ⁿ) = 1.00000000...  |  Distance restante = 0.000 m  |  Temps exact = {self.model.total_time:g}s. Triomphe mathématique !", True, COLORS["text_main"])
+            t1 = self.font_ui_bold.render("Limite atteinte · n → ∞", True, COLORS["infinity_color"])
+            t2 = self.font_ui.render(f"La série vaut 1 : {self.model.total_distance:g} m sont parcourus en {self.model.total_time:g} s, avec 0 m restant.", True, COLORS["text_main"])
         elif self.mode == "ZENON":
             pygame.draw.rect(self.screen, (45, 34, 15), banner_rect, border_radius=8)
             pygame.draw.rect(self.screen, COLORS["gold"], banner_rect, width=1, border_radius=8)
-            t1 = self.font_ui_bold.render("🏛️ Vision du Paradoxe de Zénon : L'illusion de l'inaccessible", True, COLORS["gold"])
-            t2 = self.font_ui.render("« Le javelot doit franchir 1/2, puis 1/4, puis 1/8... Comme il y a une infinité d'étapes, il n'atteindrait jamais la cible ! »", True, COLORS["text_main"])
+            t1 = self.font_ui_bold.render("Le paradoxe · une succession infinie de moitiés", True, COLORS["gold"])
+            t2 = self.font_ui.render("1/2, puis 1/4, puis 1/8… Zénon conclut à tort qu'une infinité d'étapes impose un temps infini.", True, COLORS["text_main"])
         elif self.mode == "REAL":
             pygame.draw.rect(self.screen, (15, 45, 60), banner_rect, border_radius=8)
             pygame.draw.rect(self.screen, COLORS["cyan"], banner_rect, width=1, border_radius=8)
-            t1 = self.font_ui_bold.render("📐 Résolution Mathématique : Somme d'une série géométrique convergente", True, COLORS["cyan"])
-            t2 = self.font_ui.render(f"« Le temps se divise comme l'espace : Σ Δt = {self.model.total_time:g}s et Σ Δd = {self.model.total_distance:g}m. La cible est touchée exactement à t = {self.model.total_time:g}s ! »", True, COLORS["text_main"])
+            t1 = self.font_ui_bold.render("La résolution · une série géométrique convergente", True, COLORS["cyan"])
+            t2 = self.font_ui.render(f"Le temps se divise comme l'espace : la cible est touchée exactement à t = {self.model.total_time:g} s.", True, COLORS["text_main"])
         else:
             pygame.draw.rect(self.screen, (38, 22, 60), banner_rect, border_radius=8)
             pygame.draw.rect(self.screen, COLORS["purple"], banner_rect, width=1, border_radius=8)
-            t1 = self.font_ui_bold.render("⚖️ Double Vue Comparée : Paradoxe vs Vérité Physique", True, COLORS["purple"])
-            t2 = self.font_ui.render("Observez comment le temps continu franchit chaque division sans jamais s'arrêter.", True, COLORS["text_main"])
+            t1 = self.font_ui_bold.render("Comparer les deux lectures du mouvement", True, COLORS["purple"])
+            t2 = self.font_ui.render("Le découpage est infini, mais le mouvement physique reste continu jusqu'à la cible.", True, COLORS["text_main"])
 
         self.screen.blit(t1, (x + 14, y + 8))
         self.screen.blit(t2, (x + 14, y + 28))
@@ -568,7 +587,7 @@ class ZenoApp:
 
         # Traînée lumineuse
         pygame.draw.line(self.screen, (trail_col[0], trail_col[1], trail_col[2]), (x - length - 20, y), (x - length, y), 2)
-        
+
         # Corps du javelot
         pygame.draw.line(self.screen, COLORS["white"], (x - length, y), (x, y), 3)
         # Empennage
@@ -580,7 +599,7 @@ class ZenoApp:
             (x - 14, y - 6),
             (x - 14, y + 6)
         ])
-        
+
         # Halo de pointe
         glow_radius = 16 if infinity_glow else 10
         glow_surf = pygame.Surface((glow_radius * 2, glow_radius * 2), pygame.SRCALPHA)
@@ -593,7 +612,7 @@ class ZenoApp:
         pygame.draw.circle(self.screen, COLORS["cyan"], (x, y), int(r * 0.75))
         pygame.draw.circle(self.screen, COLORS["ruby"], (x, y), int(r * 0.5))
         pygame.draw.circle(self.screen, COLORS["gold"], (x, y), int(r * 0.25))
-        
+
         pygame.draw.rect(self.screen, COLORS["panel_border_bright"], (x - 3, y + r, 6, 25))
         lbl = self.font_ui_bold.render(f"CIBLE ({self.model.total_distance:g} m)", True, COLORS["ruby"])
         self.screen.blit(lbl, (x - 38, y + r + 28))
@@ -630,9 +649,9 @@ class ZenoApp:
         pygame.draw.rect(self.screen, (40, 16, 60), panel_rect, border_radius=8)
         pygame.draw.rect(self.screen, COLORS["infinity_color"], panel_rect, width=1, border_radius=8)
 
-        t_inf = self.font_infinity.render("♾️ LIMITE ATTEINTE : n → ∞", True, COLORS["infinity_color"])
+        t_inf = self.font_infinity.render("LIMITE ATTEINTE · n → ∞", True, COLORS["infinity_color"])
         t_desc = self.font_ui.render(f"Distance totale = {self.model.total_distance:g} m (100%)  |  Temps = {self.model.total_time:g} s  |  Distance restante = 0.000000000 m", True, COLORS["text_main"])
-        t_quote = self.font_ui_bold.render("« L'infinité d'étapes infinitésimales tient dans un intervalle de temps fini ! »", True, COLORS["gold"])
+        t_quote = self.font_ui_bold.render("Une infinité d'étapes infinitésimales tient dans un temps fini.", True, COLORS["gold"])
 
         self.screen.blit(t_inf, (x + 15, y + 14))
         self.screen.blit(t_desc, (x + 15, y + 42))
@@ -644,9 +663,9 @@ class ZenoApp:
         pygame.draw.rect(self.screen, (38, 28, 14), panel_rect, border_radius=8)
         pygame.draw.rect(self.screen, COLORS["gold"], panel_rect, width=1, border_radius=8)
 
-        t_step = self.font_title.render(f"Étape {step.step_num} : Fraction {step.fraction_str}", True, COLORS["gold"])
+        t_step = self.font_title.render(f"Étape {step.step_num} · part {step.fraction_str}", True, COLORS["gold"])
         t_expl = self.font_ui.render(f"Distance étape : {step.delta_distance:g} m  |  Cumul : {step.cumul_distance:g} m  |  Reste à franchir : {step.remaining_distance:g} m", True, COLORS["text_main"])
-        t_quote = self.font_ui_bold.render("« Il reste toujours une nouvelle moitié à parcourir... Le javelot semble prisonnier de la division ! »", True, COLORS["gold"])
+        t_quote = self.font_ui_bold.render("Il reste toujours une nouvelle moitié à parcourir…", True, COLORS["gold"])
 
         self.screen.blit(t_step, (x + 15, y + 14))
         self.screen.blit(t_expl, (x + 15, y + 42))
@@ -661,7 +680,7 @@ class ZenoApp:
         pygame.draw.rect(self.screen, COLORS["panel_bg"], ctrl_rect, border_radius=10)
         pygame.draw.rect(self.screen, COLORS["panel_border"], ctrl_rect, width=1, border_radius=10)
 
-        title_ctrl = self.font_ui_bold.render("⚙️ Paramètres & Contrôles", True, COLORS["text_main"])
+        title_ctrl = self.font_ui_bold.render("Paramètres et actions", True, COLORS["text_main"])
         self.screen.blit(title_ctrl, (34, panel_y + 10))
 
         self.slider_distance.draw(self.screen, self.font_ui, self.font_ui_bold)
@@ -686,11 +705,11 @@ class ZenoApp:
 
         st = self.model.get_continuous_state(self.sim_time)
         if self.right_tab == "GRAPH":
-            self.mini_graph.draw(self.screen, self.model.total_distance, self.model.total_time, 
-                                 st["current_time"], st["current_distance"], self.model.steps, 
+            self.mini_graph.draw(self.screen, self.model.total_distance, self.model.total_time,
+                                 st["current_time"], st["current_distance"], self.model.steps,
                                  self.font_ui, self.font_ui_bold)
         else:
-            self.zoom_loupe.draw(self.screen, self.model.total_distance, st["current_distance"], 
+            self.zoom_loupe.draw(self.screen, self.model.total_distance, st["current_distance"],
                                  self.model.steps, self.font_ui_bold, self.font_ui)
 
     def run(self):

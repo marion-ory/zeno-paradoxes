@@ -1,7 +1,4 @@
-"""
-Composants d'interface utilisateur (UI) modernes, nets et contrastés pour Pygame.
-Comprend des boutons stylisés, des curseurs, des tableaux de données, des graphiques et des effets visuels.
-"""
+"""Composants d'interface pour la simulation des paradoxes de Zénon."""
 import pygame
 import math
 from typing import List, Tuple, Callable, Optional, Any
@@ -51,6 +48,7 @@ class Button:
         self.icon = icon
         self.is_toggle = is_toggle
         self.active = active
+        self.disabled = False
         self.is_hovered = False
         self.is_pressed = False
         self.hover_anim = 0.0
@@ -64,6 +62,10 @@ class Button:
             self.rect.height = height
 
     def handle_event(self, event: pygame.event.Event) -> bool:
+        if self.disabled:
+            self.is_hovered = False
+            self.is_pressed = False
+            return False
         if event.type == pygame.MOUSEMOTION:
             self.is_hovered = self.rect.collidepoint(event.pos)
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -86,6 +88,13 @@ class Button:
         self.hover_anim += (target - self.hover_anim) * min(1.0, dt * 16)
 
     def draw(self, surface: pygame.Surface, font: pygame.font.Font):
+        if self.disabled:
+            pygame.draw.rect(surface, (31, 42, 62), self.rect, border_radius=7)
+            pygame.draw.rect(surface, (54, 68, 92), self.rect, width=1, border_radius=7)
+            txt_surf = font.render(self.text, True, (116, 132, 158))
+            surface.blit(txt_surf, txt_surf.get_rect(center=self.rect.center))
+            return
+
         # Couleur dynamique
         if self.active:
             fill_col = self.base_color
@@ -210,8 +219,9 @@ class Slider:
 class DataTable:
     def __init__(self, x: int, y: int, width: int, height: int):
         self.rect = pygame.Rect(x, y, width, height)
-        self.columns = ["Étape", "Fraction", "Δ Dist.", "Δ Temps", "Σ Dist.", "Σ Temps", "Reste"]
-        self.col_widths = [60, 70, 85, 80, 90, 85, 85]
+        # Regrouper distance et temps évite les colonnes illisibles sur un écran compact.
+        self.columns = ["Étape", "Part", "Ajout (d · t)", "Cumul (d · t)", "Reste"]
+        self.col_widths = [65, 60, 105, 115, 75]
         self.steps: List[ZenoStep] = []
         self.active_step_idx = -1
         self.scroll_y = 0
@@ -223,9 +233,9 @@ class DataTable:
         self.rect.y = y
         if width is not None:
             self.rect.width = width
-            # Adapter les largeurs de colonnes proportionnellement
-            total_ratio = sum([55, 65, 80, 75, 85, 80, 80])
-            self.col_widths = [int(w / total_ratio * (self.rect.width - 20)) for w in [55, 65, 80, 75, 85, 80, 80]]
+            ratios = [15, 14, 24, 26, 21]
+            available_width = self.rect.width - 20
+            self.col_widths = [int(ratio / sum(ratios) * available_width) for ratio in ratios]
         if height is not None:
             self.rect.height = height
             self.max_visible_rows = max(4, int((self.rect.height - 55) / 24))
@@ -285,11 +295,9 @@ class DataTable:
             values = [
                 f"n = {step.step_num}",
                 step.fraction_str,
-                f"{step.delta_distance:.3g} m",
-                f"{step.delta_time:.3g} s",
-                f"{step.cumul_distance:.3g} m",
-                f"{step.cumul_time:.3g} s",
-                f"{step.remaining_distance:.3g} m"
+                f"{step.delta_distance:.3g}m · {step.delta_time:.3g}s",
+                f"{step.cumul_distance:.3g}m · {step.cumul_time:.3g}s",
+                f"{step.remaining_distance:.3g} m",
             ]
 
             curr_x = self.rect.x + 10
@@ -308,11 +316,9 @@ class DataTable:
             inf_values = [
                 "n = ∞",
                 "1/2^∞ → 0",
+                "0 m · 0 s",
+                f"{total_d:g}m · {total_t:g}s",
                 "0.000 m",
-                "0.000 s",
-                f"{total_d:g} m (100%)",
-                f"{total_t:g} s (100%)",
-                "0.000 m"
             ]
             curr_x = self.rect.x + 10
             for val_text, width in zip(inf_values, self.col_widths):
@@ -320,10 +326,18 @@ class DataTable:
                 surface.blit(inf_surf, (curr_x, inf_y + 3))
                 curr_x += width
 
-        # Résumé mathématique en bas du tableau
+        # Résumé concis pour rester lisible dans les tailles étroites.
         info_y = self.rect.bottom - 22
-        info_surf = font_row.render("✨ Limite : Σ 1/2ⁿ = 100% du trajet en 100% du temps prévu !", True, COLORS["gold"])
+        info_surf = font_row.render("La somme converge : arrivée en temps fini.", True, COLORS["gold"])
         surface.blit(info_surf, (self.rect.x + 12, info_y))
+
+        max_scroll = max(0, len(self.steps) - self.max_visible_rows)
+        if max_scroll:
+            track = pygame.Rect(self.rect.right - 8, self.rect.y + header_height + 5, 3, self.rect.height - header_height - 33)
+            thumb_height = max(18, int(track.height * self.max_visible_rows / len(self.steps)))
+            thumb_y = track.y + int((track.height - thumb_height) * self.scroll_y / max_scroll)
+            pygame.draw.rect(surface, COLORS["track_line"], track, border_radius=2)
+            pygame.draw.rect(surface, COLORS["cyan"], (track.x, thumb_y, track.width, thumb_height), border_radius=2)
 
 
 class MiniGraph:
@@ -353,7 +367,7 @@ class MiniGraph:
         gh = self.rect.height - 60
 
         # Titre
-        title_surf = font_label.render("Convergence : Distance = f(Temps)", True, COLORS["cyan"])
+        title_surf = font_label.render("Distance selon le temps", True, COLORS["cyan"])
         surface.blit(title_surf, (self.rect.x + 14, self.rect.y + 7))
 
         # Axes
@@ -435,7 +449,7 @@ class ZoomLoupe:
         pygame.draw.rect(surface, COLORS["gold"], self.rect, width=1, border_radius=10)
 
         # Titre
-        header_surf = font_title.render(f"🔬 Loupe Microscopique (Zoom x{int(self.zoom_factor)})", True, COLORS["gold"])
+        header_surf = font_title.render(f"Loupe près de la cible · ×{int(self.zoom_factor)}", True, COLORS["gold"])
         surface.blit(header_surf, (self.rect.x + 14, self.rect.y + 8))
 
         sub_surf = font_labels.render("Observation des divisions infinitésimales (1/16, 1/32, 1/64...)", True, COLORS["text_muted"])
