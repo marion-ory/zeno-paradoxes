@@ -5,7 +5,7 @@ Dans ce paradoxe, il est question de la division du déplacement d'une flèche d
 Cela tendrait à prouver que la flèche ne se déplace pas et que le mouvement de la flèche entre le décochage et son arrêt sur la cible est une illusion entraînée par cette succession infinie de temps figés : la flèche est immobile à chaque instant, elle ne peut donc se délapcer, le mouvement est impossible.     
 
 Point 1 :      
-Création d'un classe "flèche" avec comme argument des données rentrées par l'utilisateur : nombre de pas pour pour que la flèche se rende à la cible, affichage dans le terminal de la valeur de x (la position de la flèche). Si 10 pas ont été choisis, affichage de 10 valeurs de X entre 0 et la valeur de la cible (par exemple 100).     
+Création d'une fonction "flèche" avec comme argument des données rentrées par l'utilisateur : nombre de pas pour pour que la flèche se rende à la cible, affichage dans le terminal de la valeur de x (la position de la flèche). Si 10 pas ont été choisis, affichage de 10 valeurs de X entre 0 et la valeur de la cible (par exemple 100).     
 
 Point 2 :
 L’utilisateur lance la flèche, qui mettra 10 secondes pour aller de 0 (elle est décochée) à 100 (la cible). L'utilisateur fait un "keyboard interrupt" pour afficher la position de la cible à l'instant de l'appui sur la touche. La flèche est alors arrêtée net (car pas de mouvement dans un instant), pour une nouvelle mesure l'utilisateur doit re lancer la flèche. Pour ce mode, les données de la valeur de la cibles sont fixées à 100, et le nombe de pas à 1000000 (pour donner ce sentiment de continuité).    
