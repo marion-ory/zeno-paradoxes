@@ -1,7 +1,7 @@
 import time
 from random import randint
 
-choix_utilisateur = int(input("Bienvenue dans le paradoxe de la flèche de Zénon ! Faites votre choix entre ces trois options : \n1 - Créez un nombre dinstants de la flèche en fonctions de la distance\n2 - figez la flèche dansz un instant\n3 - Le mouvement est un illusion, recréez les instants possibles de la flèche qui ont mené à sa présence dans la cible\n Votre choix : "))
+choix_utilisateur = int(input("Bienvenue dans le paradoxe de la flèche de Zénon !\nFaites votre choix entre ces trois options : \n1 - Créez un nombre d'instants de la flèche en fonctions de la distance\n2 - Figez la flèche dans un instant\n3 - Le mouvement est une illusion, recréez les instants possibles de la flèche qui ont mené à sa présence dans la cible\n Votre choix : "))
 
 if choix_utilisateur == 1:
     # Fonction 1 de la flèche
