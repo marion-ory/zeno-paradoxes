@@ -59,3 +59,28 @@ def simuler_dochotomie(pos_arbre_init, pos_pierre_init, seuil=0.001):
         historique.append(etape)
 
     return historique
+
+
+def simuler_fleche(pos_fleche_init, target_init, temps_total=1.0, instant=0.1):
+
+    pos_fleche = pos_fleche_init
+    target = target_init
+    speed = target / temps_total
+    compteur = 0
+    historique = []
+
+    while pos_fleche < target:
+        distance_instant = speed * instant
+        pos_fleche += distance_instant
+        ecart = target - pos_fleche
+        compteur += 1
+
+        etape = {
+            "Itération": compteur,
+            "position_fleche": pos_fleche,
+            "reste": ecart,
+            "distance_instant": distance_instant,
+        }
+
+        historique.append(etape)
+    return historique
