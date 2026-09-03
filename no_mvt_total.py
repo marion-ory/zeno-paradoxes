@@ -8,6 +8,7 @@ def fleche_stat(distance, indice_doute, nombre_de_pas, largeur_par_doute=1):
     max_doute = max(0, distance - indice_doute * largeur_par_doute)
 
     taille_pas = distance/nombre_de_pas 
+    # Liste du total des instants et liste des instants disponibles dans l'intervalle de doute
     total_instant=[i*taille_pas for i in range (nombre_de_pas+1)]
     positions_possibles = [p for p in total_instant if max_doute <= p <= doute_nul]
 
@@ -23,4 +24,4 @@ indice_doute = int(input("Donnez un indice de doute : "))
 
 # fleche(nombre_de_pas, distance)
 max_doute, doute_nul, position = fleche_stat(distance, indice_doute, nombre_de_pas)
-print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance-max_doute}m à {distance- doute_nul}m de la cible. La dimension du pas est de {distance/nombre_de_pas}.")
+print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance- doute_nul}m à {distance-max_doute}m de la cible. La dimension du pas est de {distance/nombre_de_pas}.")
