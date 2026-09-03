@@ -219,28 +219,47 @@ class Slider:
 class DataTable:
     def __init__(self, x: int, y: int, width: int, height: int):
         self.rect = pygame.Rect(x, y, width, height)
-        # Regrouper distance et temps évite les colonnes illisibles sur un écran compact.
+        self.sim_type = "FLECHE"
         self.columns = ["Étape", "Part", "Ajout (d · t)", "Cumul (d · t)", "Reste"]
         self.col_widths = [65, 60, 105, 115, 75]
-        self.steps: List[ZenoStep] = []
+        self.steps: List[Any] = []
         self.active_step_idx = -1
         self.scroll_y = 0
         self.max_visible_rows = 9
         self.show_infinity_row = False
+
+    def set_sim_type(self, sim_type: str):
+        self.sim_type = sim_type
+        if sim_type == "TORTUE":
+            self.columns = ["Étape", "Achille (m)", "Tortue (m)", "Écart (m)", "Δt · Cumul t"]
+            ratios = [13, 21, 21, 20, 25]
+        elif sim_type == "FLECHE":
+            self.columns = ["Instant", "Position", "Reste", "Δt étape", "État Zénon"]
+            ratios = [14, 22, 22, 19, 23]
+        else:
+            self.columns = ["Étape", "Part", "Ajout (d · t)", "Cumul (d · t)", "Reste"]
+            ratios = [15, 14, 24, 26, 21]
+        available_width = self.rect.width - 20
+        self.col_widths = [int(ratio / sum(ratios) * available_width) for ratio in ratios]
 
     def set_position(self, x: int, y: int, width: Optional[int] = None, height: Optional[int] = None):
         self.rect.x = x
         self.rect.y = y
         if width is not None:
             self.rect.width = width
-            ratios = [15, 14, 24, 26, 21]
+            if self.sim_type == "TORTUE":
+                ratios = [13, 21, 21, 20, 25]
+            elif self.sim_type == "FLECHE":
+                ratios = [14, 22, 22, 19, 23]
+            else:
+                ratios = [15, 14, 24, 26, 21]
             available_width = self.rect.width - 20
             self.col_widths = [int(ratio / sum(ratios) * available_width) for ratio in ratios]
         if height is not None:
             self.rect.height = height
             self.max_visible_rows = max(4, int((self.rect.height - 55) / 24))
 
-    def set_data(self, steps: List[ZenoStep], active_step: int = -1, show_infinity: bool = False):
+    def set_data(self, steps: List[Any], active_step: int = -1, show_infinity: bool = False):
         self.steps = steps
         self.active_step_idx = active_step
         self.show_infinity_row = show_infinity
@@ -292,13 +311,30 @@ class DataTable:
                 txt_color = COLORS["text_muted"]
 
             # Données formatées
-            values = [
-                f"n = {step.step_num}",
-                step.fraction_str,
-                f"{step.delta_distance:.3g}m · {step.delta_time:.3g}s",
-                f"{step.cumul_distance:.3g}m · {step.cumul_time:.3g}s",
-                f"{step.remaining_distance:.3g} m",
-            ]
+            if self.sim_type == "TORTUE" and hasattr(step, "pos_achille"):
+                values = [
+                    f"n = {step.step_num}",
+                    f"{step.pos_achille:.3g} m",
+                    f"{step.pos_tortue:.3g} m",
+                    f"{step.ecart:.3g} m",
+                    f"{step.delta_time:.3g}s · {step.cumul_time:.3g}s",
+                ]
+            elif self.sim_type == "FLECHE" and hasattr(step, "instant_time"):
+                values = [
+                    f"i = {step.step_num}",
+                    f"{step.position:.3g} m",
+                    f"{step.remaining:.3g} m",
+                    f"{step.delta_time:.2g} s",
+                    step.state_zenon,
+                ]
+            else:
+                values = [
+                    f"n = {step.step_num}",
+                    step.fraction_str,
+                    f"{step.delta_distance:.3g}m · {step.delta_time:.3g}s",
+                    f"{step.cumul_distance:.3g}m · {step.cumul_time:.3g}s",
+                    f"{step.remaining_distance:.3g} m",
+                ]
 
             curr_x = self.rect.x + 10
             for val_text, width in zip(values, self.col_widths):
@@ -313,22 +349,45 @@ class DataTable:
             pygame.draw.rect(surface, COLORS["table_infinity"], inf_rect, border_radius=5)
             pygame.draw.rect(surface, COLORS["infinity_color"], inf_rect, width=1, border_radius=5)
             
-            inf_values = [
-                "n = ∞",
-                "1/2^∞ → 0",
-                "0 m · 0 s",
-                f"{total_d:g}m · {total_t:g}s",
-                "0.000 m",
-            ]
+            if self.sim_type == "TORTUE":
+                inf_values = [
+                    "n = ∞",
+                    f"{total_d:g} m",
+                    f"{total_d:g} m",
+                    "0.000 m",
+                    f"0s · {total_t:g}s",
+                ]
+            elif self.sim_type == "FLECHE":
+                inf_values = [
+                    "i = ∞",
+                    f"{total_d:g} m",
+                    "0.000 m",
+                    "dt → 0",
+                    "Continu v>0",
+                ]
+            else:
+                inf_values = [
+                    "n = ∞",
+                    "1/2^∞ → 0",
+                    "0 m · 0 s",
+                    f"{total_d:g}m · {total_t:g}s",
+                    "0.000 m",
+                ]
             curr_x = self.rect.x + 10
             for val_text, width in zip(inf_values, self.col_widths):
                 inf_surf = font_row.render(val_text, True, COLORS["infinity_color"])
                 surface.blit(inf_surf, (curr_x, inf_y + 3))
                 curr_x += width
 
-        # Résumé concis pour rester lisible dans les tailles étroites.
+        # Résumé concis
         info_y = self.rect.bottom - 22
-        info_surf = font_row.render("La somme converge : arrivée en temps fini.", True, COLORS["gold"])
+        if self.sim_type == "TORTUE":
+            summary_txt = "Achille dépasse la tortue : temps de course fini !"
+        elif self.sim_type == "FLECHE":
+            summary_txt = "La flèche vole : la dérivée dx/dt > 0 résout le paradoxe !"
+        else:
+            summary_txt = "La somme converge : arrivée en temps fini."
+        info_surf = font_row.render(summary_txt, True, COLORS["gold"])
         surface.blit(info_surf, (self.rect.x + 12, info_y))
 
         max_scroll = max(0, len(self.steps) - self.max_visible_rows)
@@ -352,6 +411,127 @@ class MiniGraph:
             self.rect.width = width
         if height is not None:
             self.rect.height = height
+
+    def draw_tortue(self, surface: pygame.Surface, pos_a_init: float, pos_t_init: float,
+                    v_a: float, v_t: float, catchup_d: float, catchup_t: float,
+                    current_t: float, pos_a: float, pos_t: float,
+                    font_axis: pygame.font.Font, font_label: pygame.font.Font):
+        """Trace les deux trajectoires Achille et Tortue et leur intersection."""
+        pygame.draw.rect(surface, COLORS["panel_bg"], self.rect, border_radius=10)
+        pygame.draw.rect(surface, COLORS["panel_border"], self.rect, width=1, border_radius=10)
+
+        gx = self.rect.x + 48
+        gy = self.rect.y + 28
+        gw = self.rect.width - 65
+        gh = self.rect.height - 60
+
+        title_surf = font_label.render("Trajectoires x(t) : Achille vs Tortue", True, COLORS["gold"])
+        surface.blit(title_surf, (self.rect.x + 14, self.rect.y + 7))
+
+        max_t = max(catchup_t * 1.25, 1.0)
+        max_d = max(catchup_d * 1.25, pos_t_init + 5.0)
+
+        # Axes
+        pygame.draw.line(surface, COLORS["panel_border_bright"], (gx, gy + gh), (gx + gw, gy + gh), 2)
+        pygame.draw.line(surface, COLORS["panel_border_bright"], (gx, gy), (gx, gy + gh), 2)
+
+        time_label = font_axis.render(f"t (s) → Dépassement à {catchup_t:.2f}s", True, COLORS["text_muted"])
+        surface.blit(time_label, (gx + gw // 4, gy + gh + 6))
+        dist_label = font_axis.render("x (m)", True, COLORS["text_muted"])
+        surface.blit(dist_label, (self.rect.x + 8, gy - 4))
+
+        # Ligne de rattrapage
+        cross_y = gy + gh - int(min(1.0, catchup_d / max_d) * gh)
+        cross_x = gx + int(min(1.0, catchup_t / max_t) * gw)
+        pygame.draw.line(surface, (60, 45, 90), (gx, cross_y), (gx + gw, cross_y), 1)
+
+        # Courbes théoriques
+        t_pts_tortue = []
+        t_pts_achille = []
+        steps_count = int(gw)
+        for px in range(0, steps_count + 1):
+            t_val = (px / gw) * max_t
+            d_tortue = pos_t_init + v_t * t_val
+            d_achille = pos_a_init + v_a * t_val
+            py_t = gy + gh - int(min(1.0, d_tortue / max_d) * gh)
+            py_a = gy + gh - int(min(1.0, d_achille / max_d) * gh)
+            t_pts_tortue.append((gx + px, py_t))
+            t_pts_achille.append((gx + px, py_a))
+
+        if len(t_pts_tortue) > 1:
+            pygame.draw.lines(surface, COLORS["emerald"], False, t_pts_tortue, 2)
+        if len(t_pts_achille) > 1:
+            pygame.draw.lines(surface, COLORS["cyan"], False, t_pts_achille, 2)
+
+        # Point de croisement
+        if gx <= cross_x <= gx + gw and gy <= cross_y <= gy + gh:
+            pygame.draw.circle(surface, COLORS["gold"], (cross_x, cross_y), 6)
+            pygame.draw.circle(surface, COLORS["white"], (cross_x, cross_y), 3)
+            lbl_cross = font_axis.render(f"D={catchup_d:.1f}m", True, COLORS["gold"])
+            surface.blit(lbl_cross, (cross_x - 20, cross_y - 18))
+
+        # Position en temps réel
+        cur_x_pos = gx + int(min(1.0, current_t / max_t) * gw)
+        pygame.draw.line(surface, (100, 130, 180), (cur_x_pos, gy), (cur_x_pos, gy + gh), 1)
+
+        ay = gy + gh - int(min(1.0, pos_a / max_d) * gh)
+        ty = gy + gh - int(min(1.0, pos_t / max_d) * gh)
+        pygame.draw.circle(surface, COLORS["cyan"], (cur_x_pos, ay), 5)
+        pygame.draw.circle(surface, COLORS["emerald"], (cur_x_pos, ty), 5)
+
+        # Légende
+        lbl_a = font_axis.render("— Achille", True, COLORS["cyan"])
+        lbl_t = font_axis.render("— Tortue", True, COLORS["emerald"])
+        surface.blit(lbl_a, (gx + 10, gy + 4))
+        surface.blit(lbl_t, (gx + 80, gy + 4))
+
+    def draw_fleche_vol(self, surface: pygame.Surface, total_d: float, total_t: float,
+                        current_t: float, current_d: float, steps: List[Any],
+                        font_axis: pygame.font.Font, font_label: pygame.font.Font):
+        """Trace le vol continu de la flèche et les instants figés de Zénon."""
+        pygame.draw.rect(surface, COLORS["panel_bg"], self.rect, border_radius=10)
+        pygame.draw.rect(surface, COLORS["panel_border"], self.rect, width=1, border_radius=10)
+
+        gx = self.rect.x + 48
+        gy = self.rect.y + 28
+        gw = self.rect.width - 65
+        gh = self.rect.height - 60
+
+        title_surf = font_label.render("Trajectoire : Vol continu vs Instants", True, COLORS["gold"])
+        surface.blit(title_surf, (self.rect.x + 14, self.rect.y + 7))
+
+        pygame.draw.line(surface, COLORS["panel_border_bright"], (gx, gy + gh), (gx + gw, gy + gh), 2)
+        pygame.draw.line(surface, COLORS["panel_border_bright"], (gx, gy), (gx, gy + gh), 2)
+
+        time_label = font_axis.render(f"t (s) → Cible à {total_t:.2f}s", True, COLORS["text_muted"])
+        surface.blit(time_label, (gx + gw // 4, gy + gh + 6))
+        dist_label = font_axis.render("x (m)", True, COLORS["text_muted"])
+        surface.blit(dist_label, (self.rect.x + 8, gy - 4))
+
+        # Droite continue de vol
+        pygame.draw.line(surface, COLORS["cyan"], (gx, gy + gh), (gx + gw, gy), 2)
+
+        # Marqueurs des instants discrets (Zénon)
+        for st in steps:
+            if total_t > 0:
+                sx = gx + int((st.instant_time / total_t) * gw)
+                sy = gy + gh - int((st.position / total_d) * gh)
+                pygame.draw.circle(surface, COLORS["gold"], (sx, sy), 4)
+                pygame.draw.line(surface, (70, 55, 20), (sx, gy + gh), (sx, sy), 1)
+
+        # Position en temps réel
+        if total_t > 0:
+            cur_ratio_t = min(1.0, current_t / total_t)
+            cur_ratio_d = min(1.0, current_d / total_d)
+            cx = gx + int(cur_ratio_t * gw)
+            cy = gy + gh - int(cur_ratio_d * gh)
+            pygame.draw.circle(surface, COLORS["white"], (cx, cy), 6)
+            pygame.draw.circle(surface, COLORS["cyan"], (cx, cy), 9, width=2)
+
+        lbl_c = font_axis.render("— Vol continu (dx/dt)", True, COLORS["cyan"])
+        lbl_z = font_axis.render("• Instants figés", True, COLORS["gold"])
+        surface.blit(lbl_c, (gx + 10, gy + 4))
+        surface.blit(lbl_z, (gx + 130, gy + 4))
 
     def draw(self, surface: pygame.Surface, total_d: float, total_t: float, 
              current_t: float, current_d: float, steps: List[ZenoStep], 
@@ -501,6 +681,94 @@ class ZoomLoupe:
         else:
             out_txt = font_labels.render("← Javelot en approche (hors champ zoom)", True, COLORS["text_muted"])
             surface.blit(out_txt, (track_x_start + 10, track_y - 12))
+
+    def draw_tortue(self, surface: pygame.Surface, catchup_d: float, pos_a: float, pos_t: float,
+                    font_title: pygame.font.Font, font_labels: pygame.font.Font):
+        pygame.draw.rect(surface, COLORS["panel_bg"], self.rect, border_radius=10)
+        pygame.draw.rect(surface, COLORS["gold"], self.rect, width=1, border_radius=10)
+
+        header_surf = font_title.render(f"Loupe Achille vs Tortue · ×{int(self.zoom_factor)}", True, COLORS["gold"])
+        surface.blit(header_surf, (self.rect.x + 14, self.rect.y + 8))
+
+        ecart = max(0.0, pos_t - pos_a)
+        sub_surf = font_labels.render(f"Écart résiduel en temps réel : {ecart:.4f} m", True, COLORS["text_muted"])
+        surface.blit(sub_surf, (self.rect.x + 14, self.rect.y + 28))
+
+        track_y = self.rect.y + 105
+        track_x_start = self.rect.x + 25
+        track_x_target = self.rect.right - 40
+        track_width = track_x_target - track_x_start
+
+        window_range = 4.0
+        window_start_d = pos_t - window_range * 0.75
+
+        pygame.draw.line(surface, COLORS["panel_border_bright"], (track_x_start, track_y), (track_x_target, track_y), 3)
+
+        if window_start_d <= catchup_d <= window_start_d + window_range:
+            rx = track_x_start + int(((catchup_d - window_start_d) / window_range) * track_width)
+            pygame.draw.line(surface, COLORS["ruby"], (rx, track_y - 20), (rx, track_y + 20), 2)
+            lbl_r = font_labels.render(f"Rattrapage ({catchup_d:.1f}m)", True, COLORS["ruby"])
+            surface.blit(lbl_r, (rx - 40, track_y + 24))
+
+        tx = track_x_start + int(((pos_t - window_start_d) / window_range) * track_width)
+        tx = max(track_x_start + 10, min(track_x_target - 10, tx))
+        pygame.draw.circle(surface, COLORS["emerald"], (tx, track_y), 9)
+        pygame.draw.circle(surface, (10, 40, 20), (tx, track_y), 6)
+        lbl_tort = font_labels.render("Tortue", True, COLORS["emerald"])
+        surface.blit(lbl_tort, (tx - 18, track_y - 28))
+
+        ax = track_x_start + int(((pos_a - window_start_d) / window_range) * track_width)
+        if ax >= track_x_start - 20:
+            ax_clamped = max(track_x_start, min(track_x_target, ax))
+            pygame.draw.circle(surface, COLORS["cyan"], (ax_clamped, track_y), 9)
+            pygame.draw.circle(surface, COLORS["white"], (ax_clamped, track_y), 4)
+            lbl_ach = font_labels.render("Achille", True, COLORS["cyan"])
+            surface.blit(lbl_ach, (ax_clamped - 18, track_y + 12))
+
+            if tx > ax_clamped + 5:
+                pygame.draw.line(surface, COLORS["gold"], (ax_clamped + 10, track_y - 12), (tx - 10, track_y - 12), 2)
+                lbl_d = font_labels.render(f"Δ = {ecart:.3f}m", True, COLORS["gold"])
+                surface.blit(lbl_d, ((ax_clamped + tx) // 2 - 20, track_y - 30))
+        else:
+            lbl_far = font_labels.render("← Achille en approche", True, COLORS["text_muted"])
+            surface.blit(lbl_far, (track_x_start + 10, track_y - 12))
+
+    def draw_fleche_vol(self, surface: pygame.Surface, total_d: float, current_d: float,
+                        vitesse: float, font_title: pygame.font.Font, font_labels: pygame.font.Font):
+        pygame.draw.rect(surface, COLORS["panel_bg"], self.rect, border_radius=10)
+        pygame.draw.rect(surface, COLORS["gold"], self.rect, width=1, border_radius=10)
+
+        header_surf = font_title.render("Loupe temporelle · Instantané dt → 0", True, COLORS["gold"])
+        surface.blit(header_surf, (self.rect.x + 14, self.rect.y + 8))
+
+        sub_surf = font_labels.render(f"Vitesse réelle continue v = dx/dt = {vitesse:.1f} m/s", True, COLORS["cyan"])
+        surface.blit(sub_surf, (self.rect.x + 14, self.rect.y + 28))
+
+        cx = self.rect.centerx
+        cy = self.rect.y + 115
+
+        # Flèche agrandie dans son instant
+        length = 110
+        pygame.draw.line(surface, COLORS["white"], (cx - length // 2, cy), (cx + length // 2, cy), 4)
+        pygame.draw.polygon(surface, COLORS["gold"], [
+            (cx + length // 2 + 12, cy),
+            (cx + length // 2 - 14, cy - 8),
+            (cx + length // 2 - 14, cy + 8)
+        ])
+        pygame.draw.line(surface, COLORS["cyan"], (cx - length // 2, cy - 10), (cx - length // 2 + 16, cy), 3)
+        pygame.draw.line(surface, COLORS["cyan"], (cx - length // 2, cy + 10), (cx - length // 2 + 16, cy), 3)
+
+        # Boîte d'immobilité de Zénon : "Espace égal à la flèche"
+        box_rect = pygame.Rect(cx - length // 2 - 6, cy - 18, length + 24, 36)
+        pygame.draw.rect(surface, (85, 65, 25), box_rect, width=1, border_radius=4)
+        lbl_box = font_labels.render("Volume occupé à l'instant t (espace égal à lui-même)", True, COLORS["gold"])
+        surface.blit(lbl_box, (cx - 145, cy + 28))
+
+        # Vecteur vitesse (flèche néon)
+        pygame.draw.line(surface, COLORS["emerald"], (cx, cy - 24), (cx + 55, cy - 24), 2)
+        pygame.draw.polygon(surface, COLORS["emerald"], [(cx + 60, cy - 24), (cx + 50, cy - 28), (cx + 50, cy - 20)])
+        lbl_v = font_labels.render(f"Vecteur vitesse v(t) = {vitesse:.1f} m/s", True, COLORS["emerald"])
+        surface.blit(lbl_v, (cx - 30, cy - 44))
 
 
 class Particle:
