@@ -12,3 +12,19 @@ L’utilisateur lance la flèche, qui mettra 10 secondes pour aller de 0 (elle e
 
 Point 3 :      
 Idem point 1 avec "indice de doute" à rentrer par l'utilisateur, qui consiste à déterminer combien d'instants auront été nécessaires pour que la flèche soit plantée dans la cible : l'utilisateur construit lui même l'illusion du mouvement en donnant cet "indice du doute". L'indice du doute se reporte à plusieurs fourchettes de distances de différentes tailles, plus le coef de doute est élevé et plus la fourchette est large.
+
+#### **Variation des résultats sur la point n°3**     
+Voici les résultats associés au déroulement du point 3 :      
+
+**Cas n°1 :** : un faible nombre de pas      
+nb de pas : 50      
+Distance : 100      
+Indice de doute : 10      
+les valeurs disponibles sont donc : 0, 2, 4, 6, 8, 10. Il y a environ 17% de chance de tomber sur une de ces 6 valeurs. On risque de voir revenir très régulièrement les mêmes valeurs au fur et à mesure des tests.     
+Avec un indice de doute de 10, la flèche pourrait se trouver à 0.00m de la cible, dans une fourchette de 10m à 0m de la cible.      
+
+**Cas n°2 :** : un grand nombre de pas      
+nb de pas : 50000      
+Distance : 100      
+Indice de doute : 10      
+Avec un indice de doute de 10, la fleche pourrait se trouver à 5.16m de la cible, dans une fourchette de 10m à 0m de la cible. La dimension du pas est de 0.002. Il y donc une forte variabilité du placement de l'instant dans l'intervalle de distance donnée, au fur et à mesure des tests.
