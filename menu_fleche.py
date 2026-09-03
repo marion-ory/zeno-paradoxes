@@ -29,7 +29,7 @@ while True :
 
     if choix_utilisateur == 2:
         def fleche_decompte(distance, duree_totale=10, nombre_de_pas=1000000):
-            print("La flèche peut se situer dans un intervale de {distance} par rapport à la cible, le nombre de pas possible est de 1,000,000.")
+            print(f"La flèche peut se situer dans un intervale de {distance} par rapport à la cible, le nombre de pas possible est de 1,000,000.")
             debut = time.time()
             decompte = duree_totale
             try:
@@ -53,20 +53,20 @@ while True :
 
     if choix_utilisateur == 3:
         def fleche_stat(distance, indice_doute, nombre_de_pas, largeur_par_doute=1):
-            max_doute = distance
-            min_doute = max(0, distance - indice_doute * largeur_par_doute)
-            taille_pas = (max_doute - min_doute)/nombre_de_pas 
+            doute_nul = distance
+            max_doute = max(0, distance - indice_doute * largeur_par_doute)
+            taille_pas = (doute_nul - max_doute)/nombre_de_pas 
             random_pas = randint(0, nombre_de_pas)
-            position = min_doute + random_pas * taille_pas
-            return min_doute, max_doute, position
+            position = max_doute + random_pas * taille_pas
+            return max_doute, doute_nul, position
 
         nombre_de_pas = int(input("Donnez un nombre de pas : "))
         distance = int(input("Donnez une distance de la cible : "))
         indice_doute = int(input("Donnez un indice de doute : "))
 
         # fleche(nombre_de_pas, distance)
-        min_doute, max_doute, position = fleche_stat(distance, indice_doute, nombre_de_pas)
-        print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {min_doute}m à {max_doute}m du tireur.")
+        max_doute, doute_nul, position = fleche_stat(distance, indice_doute, nombre_de_pas)
+        print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {max_doute}m à {doute_nul}m du tireur.")
 
     if choix_utilisateur == 4:
         print ("Fin du programme.")
