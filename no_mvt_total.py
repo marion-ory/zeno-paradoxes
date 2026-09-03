@@ -23,4 +23,4 @@ indice_doute = int(input("Donnez un indice de doute : "))
 
 # fleche(nombre_de_pas, distance)
 max_doute, doute_nul, position = fleche_stat(distance, indice_doute, nombre_de_pas)
-print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance-max_doute}m à {distance- doute_nul}m de la cible.")
+print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance-max_doute}m à {distance- doute_nul}m de la cible. La dimension du pas est de {distance/nombre_de_pas}.")
