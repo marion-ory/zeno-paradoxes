@@ -27,4 +27,4 @@ Avec un indice de doute de 10, la flèche pourrait se trouver à 0.00m de la cib
 nb de pas : 50000      
 Distance : 100      
 Indice de doute : 10      
-Avec un indice de doute de 10, la fleche pourrait se trouver à 5.16m de la cible, dans une fourchette de 10m à 0m de la cible. La dimension du pas est de 0.002. Il y donc une forte variabilité du placement de l'instant dans l'intervalle de distance donnée, au fur et à mesure des tests.
+Avec un indice de doute de 10, la fleche pourrait se trouver à 5.16m de la cible, dans une fourchette de 0m à 10m de la cible. La dimension du pas est de 0.002. Il y donc une forte variabilité du placement de l'instant dans l'intervalle de distance donnée, au fur et à mesure des tests.
