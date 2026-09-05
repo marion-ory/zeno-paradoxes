@@ -1,7 +1,8 @@
 # **Les paradoxes de Zenon**
 
-### **La flèche et la cible**     
-Dans ce paradoxe, il est question de la division du déplacement d'une flèche décochée vers une cible, avec son parcours découpé en une infinité d'instants de temps figés où la vitesse de la flèche serait alors de 0. En effet celle ci occupe alors uniquement sa propre longueur, elle est donc immobile pendant la totalité du trajet.     
+### **Le paradoxe de la flèche**     
+Dans ce paradoxe, il est question de la division en une infinité d'instants du déplacement d'une flèche décochée vers une cible, où la vitesse de la flèche serait alors de 0.     
+En effet celle ci occupe alors uniquement sa propre longueur, elle est donc immobile pendant la totalité du trajet.     
 Cela tendrait à prouver que la flèche ne se déplace pas et que le mouvement de la flèche entre le décochage et son arrêt sur la cible est une illusion entraînée par cette succession infinie de temps figés : la flèche est immobile à chaque instant, elle ne peut donc se délapcer, le mouvement est impossible.     
 
 Point 1 :      
