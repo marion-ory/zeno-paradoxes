@@ -20,7 +20,7 @@ while True :
             taille_du_pas = (distance / nombre_de_pas)
             for i in range (1, nombre_de_pas+1) :
                 position = i*taille_du_pas
-                print(f"l'instant {i} se trouve à {position} du tireur.")
+                print(f"l'instant {i} se trouve à {position}m du tireur donc à {distance - position}m de la cible.")
 
         nombre_de_pas = int(input("Donnez un nombre de pas : "))
         distance = int(input("Donnez une distance de la cible : "))
