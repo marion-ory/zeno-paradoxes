@@ -25,6 +25,7 @@ while True :
         nombre_de_pas = int(input("Donnez un nombre de pas : "))
         distance = int(input("Donnez une distance de la cible : "))
         fleche(nombre_de_pas, distance)
+        break
 
 
     if choix_utilisateur == 2:
@@ -50,6 +51,7 @@ while True :
                 print(f"Elle se trouve à {position:.3f} m du tireur.")
         distance = int(input("Donnez une distance de la cible : "))
         fleche_decompte(distance)
+        break
 
     if choix_utilisateur == 3:
         def fleche_stat(distance, indice_doute, nombre_de_pas, largeur_par_doute=1):
@@ -61,21 +63,23 @@ while True :
             taille_pas = distance/nombre_de_pas 
             # Liste du total des instants et liste des instants disponibles dans l'intervalle de doute
             total_instant=[i*taille_pas for i in range (nombre_de_pas+1)]
+            # print(total_instant)
             positions_possibles = [p for p in total_instant if max_doute <= p <= doute_nul]
 
             if not positions_possibles:
                 positions_possibles = [doute_nul]
 
             position = choice(positions_possibles)
-            return max_doute, doute_nul, position
+            return max_doute, doute_nul, position, len(positions_possibles)
 
         nombre_de_pas = int(input("Donnez un nombre de pas : "))
         distance = int(input("Donnez une distance de la cible : "))
         indice_doute = int(input("Donnez un indice de doute : "))
 
         # fleche(nombre_de_pas, distance)
-        max_doute, doute_nul, position = fleche_stat(distance, indice_doute, nombre_de_pas)
-        print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance- doute_nul}m à {distance-max_doute}m de la cible. La dimension du pas est de {distance/nombre_de_pas}.")
+        max_doute, doute_nul, position, positions_possibles = fleche_stat(distance, indice_doute, nombre_de_pas)
+        print(f"Avec un indice de doute de {indice_doute}, la fleche pourrait se trouver à {distance-position:.2f}m de la cible, dans une fourchette de {distance- doute_nul}m à {distance-max_doute}m de la cible. La dimension du pas est de {distance/nombre_de_pas}, le nombre de pas possible dans l'intervalle choisi est de {positions_possibles}.")
+        break
 
     if choix_utilisateur == 4:
         print ("\nFin du programme.")
